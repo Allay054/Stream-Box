@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -990,9 +989,7 @@ fun PlayerScreen(
                 streamPlayer.player.duration
 
             if (positionMs > 0L &&
-                durationMs > 0L &&
-                durationMs != androidx.media3.common.C.TIME_UNSET &&
-                positionMs < durationMs
+                durationMs > 0L && positionMs < durationMs
             ) {
                 try {
                     savePlaybackProgressUseCase(
@@ -1033,9 +1030,7 @@ fun PlayerScreen(
                     streamPlayer.player.duration
 
                 if (positionMs > 0L &&
-                    durationMs > 0L &&
-                    durationMs != androidx.media3.common.C.TIME_UNSET &&
-                    positionMs < durationMs
+                    durationMs > 0L && positionMs < durationMs
                 ) {
                     playbackProgressScope.launch {
                         try {
@@ -1096,7 +1091,7 @@ fun PlayerScreen(
         Log.d(
             "StreamBoxPlayer",
             "Switching to previous: " +
-                    "${previousChannel.name}"
+                    previousChannel.name
         )
 
         currentChannelId =
@@ -1140,7 +1135,7 @@ fun PlayerScreen(
         Log.d(
             "StreamBoxPlayer",
             "Switching to next: " +
-                    "${nextChannel.name}"
+                    nextChannel.name
         )
 
         currentChannelId =

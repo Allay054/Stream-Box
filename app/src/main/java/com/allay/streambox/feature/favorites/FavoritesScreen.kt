@@ -153,7 +153,7 @@ fun FavoritesScreen(
                                 "StreamBoxFavorites",
                                 "Favorite selected: " +
                                         "${channel.id} " +
-                                        "${channel.name}"
+                                        channel.name
                             )
 
                             onChannelClick(channel)
@@ -164,7 +164,7 @@ fun FavoritesScreen(
                             Log.d(
                                 "StreamBoxFavorites",
                                 "Remove requested: " +
-                                        "${channel.id}"
+                                        channel.id
                             )
 
                             onRemoveFavorite(
@@ -225,7 +225,7 @@ private fun FavoriteChannelCard(
                     Log.d(
                         "StreamBoxFavorites",
                         "Favorite focused: " +
-                                "${channel.id}"
+                                channel.id
                     )
                 }
             }
