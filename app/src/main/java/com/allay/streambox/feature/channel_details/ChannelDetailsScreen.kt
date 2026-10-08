@@ -21,6 +21,8 @@ import com.allay.streambox.feature.channels.ChannelItem
 @Composable
 fun ChannelDetailsScreen(
     channel: ChannelItem,
+    isFavorite: Boolean,
+    onFavoriteClick: () -> Unit,
     onWatchNow: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -162,6 +164,32 @@ fun ChannelDetailsScreen(
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
+        }
+
+        /*
+         * FAVORITE BUTTON
+         */
+        Button(
+            onClick = {
+                Log.d(
+                    "StreamBoxFavorites",
+                    "Favorite button clicked: channelId=${channel.id}, currentState=$isFavorite"
+                )
+
+                onFavoriteClick()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp)
+        ) {
+            Text(
+                text = if (isFavorite) {
+                    "★ REMOVE FROM FAVORITES"
+                } else {
+                    "☆ ADD TO FAVORITES"
+                },
+                style = MaterialTheme.typography.titleMedium
+            )
         }
 
         /*

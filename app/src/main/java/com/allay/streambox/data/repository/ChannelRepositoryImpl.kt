@@ -1,5 +1,6 @@
 package com.allay.streambox.data.repository
 
+import android.util.Log
 import com.allay.streambox.data.local.DemoChannelDataSource
 import com.allay.streambox.data.remote.RemoteChannelDataSource
 import com.allay.streambox.domain.model.Channel
@@ -81,6 +82,8 @@ class ChannelRepositoryImpl(
 
         } catch (exception: Exception) {
 
+            Log.d("StreamBoxPlayer", "ex: "+exception.message)
+
             emit(
                 demoDataSource.getChannels()
             )
@@ -130,6 +133,9 @@ class ChannelRepositoryImpl(
             emit(categories)
 
         } catch (exception: Exception) {
+
+            Log.d("StreamBoxPlayer", "ex: "+exception.message)
+
 
             emit(
                 demoDataSource
@@ -195,6 +201,9 @@ class ChannelRepositoryImpl(
             )
 
         } catch (exception: Exception) {
+
+            Log.d("StreamBoxPlayer", "ex: "+exception.message)
+
 
             demoDataSource
                 .getChannelById(channelId)

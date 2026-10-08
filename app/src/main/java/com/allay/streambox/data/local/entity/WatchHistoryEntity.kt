@@ -4,12 +4,12 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(
-    tableName = "favorite_channels"
+    tableName = "watch_history"
 )
-data class FavoriteChannelEntity(
+data class WatchHistoryEntity(
 
     @PrimaryKey
     val channelId: String,
 
-    val createdAt: Long = System.currentTimeMillis()
+    val watchedAt: Long = System.currentTimeMillis()
 )

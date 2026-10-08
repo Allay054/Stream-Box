@@ -925,7 +925,7 @@ fun PlayerScreen(
         Log.d(
             "StreamBoxPlayer",
             "Switching to previous: " +
-                    "${previousChannel.name}"
+                    previousChannel.name
         )
 
         currentChannelId =
@@ -969,7 +969,7 @@ fun PlayerScreen(
         Log.d(
             "StreamBoxPlayer",
             "Switching to next: " +
-                    "${nextChannel.name}"
+                    nextChannel.name
         )
 
         currentChannelId =

@@ -2,6 +2,11 @@ package com.allay.streambox.navigation
 
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -9,14 +14,31 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.allay.streambox.data.local.DemoChannelDataSource
+import com.allay.streambox.data.local.StreamBoxDatabase
 import com.allay.streambox.data.remote.RetrofitProvider
 import com.allay.streambox.data.repository.ChannelRepositoryImpl
+import com.allay.streambox.data.repository.FavoriteRepositoryImpl
+import com.allay.streambox.data.repository.WatchHistoryRepositoryImpl
+import com.allay.streambox.domain.usecase.AddFavoriteUseCase
+import com.allay.streambox.domain.usecase.ClearWatchHistoryUseCase
 import com.allay.streambox.domain.usecase.GetChannelCategoriesUseCase
 import com.allay.streambox.domain.usecase.GetChannelsUseCase
+import com.allay.streambox.domain.usecase.IsFavoriteUseCase
+import com.allay.streambox.domain.usecase.ObserveWatchHistoryUseCase
+import com.allay.streambox.domain.usecase.RecordWatchHistoryUseCase
+import com.allay.streambox.domain.usecase.RemoveFavoriteUseCase
 import com.allay.streambox.feature.channel_details.ChannelDetailsScreen
 import com.allay.streambox.feature.channels.ChannelViewModel
 import com.allay.streambox.feature.channels.ChannelViewModelFactory
 import com.allay.streambox.feature.channels.ChannelsScreen
+import com.allay.streambox.feature.favorites.FavoriteViewModel
+import com.allay.streambox.feature.favorites.FavoriteViewModelFactory
+import com.allay.streambox.feature.favorites.FavoritesScreen
+import com.allay.streambox.feature.favorites.FavoritesViewModel
+import com.allay.streambox.feature.favorites.FavoritesViewModelFactory
+import com.allay.streambox.feature.history.WatchHistoryScreen
+import com.allay.streambox.feature.history.WatchHistoryViewModel
+import com.allay.streambox.feature.history.WatchHistoryViewModelFactory
 import com.allay.streambox.feature.home.HomeScreen
 import com.allay.streambox.feature.player.PlayerScreen
 
@@ -26,7 +48,87 @@ fun StreamBoxNavGraph() {
     val navController = rememberNavController()
 
     // =========================================================
-    // DATA LAYER
+    // APPLICATION / DATABASE
+    // =========================================================
+
+    val applicationContext =
+        LocalContext.current.applicationContext
+
+    val database =
+        remember(applicationContext) {
+            StreamBoxDatabase.getInstance(
+                applicationContext
+            )
+        }
+
+    // =========================================================
+    // FAVORITES DATA LAYER
+    // =========================================================
+
+    val favoriteRepository =
+        remember(database) {
+            FavoriteRepositoryImpl(
+                favoriteChannelDao =
+                    database.favoriteChannelDao()
+            )
+        }
+
+    val addFavoriteUseCase =
+        remember(favoriteRepository) {
+            AddFavoriteUseCase(
+                favoriteRepository
+            )
+        }
+
+    val removeFavoriteUseCase =
+        remember(favoriteRepository) {
+            RemoveFavoriteUseCase(
+                favoriteRepository
+            )
+        }
+
+    val isFavoriteUseCase =
+        remember(favoriteRepository) {
+            IsFavoriteUseCase(
+                favoriteRepository
+            )
+        }
+
+    // =========================================================
+    // WATCH HISTORY DATA LAYER
+    // =========================================================
+
+    val watchHistoryRepository =
+        remember(database) {
+            WatchHistoryRepositoryImpl(
+                watchHistoryDao =
+                    database.watchHistoryDao()
+            )
+        }
+
+    val recordWatchHistoryUseCase =
+        remember(watchHistoryRepository) {
+            RecordWatchHistoryUseCase(
+                watchHistoryRepository
+            )
+        }
+
+    val observeWatchHistoryUseCase =
+        remember(watchHistoryRepository) {
+            ObserveWatchHistoryUseCase(
+                watchHistoryRepository
+            )
+        }
+
+    val clearWatchHistoryUseCase =
+        remember(watchHistoryRepository) {
+            ClearWatchHistoryUseCase(
+                watchHistoryRepository
+            )
+        }
+
+    // =========================================================
+    // CHANNEL DATA LAYER
     // =========================================================
 
     val demoDataSource =
@@ -42,7 +144,7 @@ fun StreamBoxNavGraph() {
         )
 
     // =========================================================
-    // USE CASES
+    // CHANNEL USE CASES
     // =========================================================
 
     val getChannelsUseCase =
@@ -52,13 +154,14 @@ fun StreamBoxNavGraph() {
         GetChannelCategoriesUseCase(repository)
 
     // =========================================================
-    // VIEW MODEL
+    // CHANNEL VIEW MODEL
     // =========================================================
 
     val channelViewModel: ChannelViewModel =
         viewModel(
             factory = ChannelViewModelFactory(
-                getChannelsUseCase = getChannelsUseCase,
+                getChannelsUseCase =
+                    getChannelsUseCase,
                 getChannelCategoriesUseCase =
                     getChannelCategoriesUseCase
             )
@@ -122,6 +225,226 @@ fun StreamBoxNavGraph() {
                     navController.navigate(
                         StreamBoxRoutes.channels("all")
                     )
+                },
+
+                onFavoritesClick = {
+
+                    Log.d(
+                        "StreamBoxNavigation",
+                        "Home Favorites clicked"
+                    )
+
+                    navController.navigate(
+                        StreamBoxRoutes.FAVORITES
+                    )
+                },
+
+                onHistoryClick = {
+
+                    Log.d(
+                        "StreamBoxNavigation",
+                        "Home History clicked"
+                    )
+
+                    navController.navigate(
+                        StreamBoxRoutes.HISTORY
+                    )
+                }
+            )
+        }
+
+        // =====================================================
+        // FAVORITES
+        // =====================================================
+
+        composable(
+            route = StreamBoxRoutes.FAVORITES
+        ) {
+
+            Log.d(
+                "StreamBoxNavigation",
+                "================================"
+            )
+
+            Log.d(
+                "StreamBoxNavigation",
+                "FAVORITES DESTINATION OPENED"
+            )
+
+            Log.d(
+                "StreamBoxNavigation",
+                "================================"
+            )
+
+            val favoritesViewModel: FavoritesViewModel =
+                viewModel(
+                    factory =
+                        FavoritesViewModelFactory(
+                            favoriteRepository =
+                                favoriteRepository
+                        )
+                )
+
+            val favoriteChannelIds by
+            favoritesViewModel
+                .favoriteChannelIds
+                .collectAsState()
+
+            val channels by
+            channelViewModel
+                .channels
+                .collectAsState()
+
+            Log.d(
+                "StreamBoxFavorites",
+                "Favorite IDs from Room: " +
+                        favoriteChannelIds
+            )
+
+            Log.d(
+                "StreamBoxFavorites",
+                "Available channels: " +
+                        channels.size
+            )
+
+            FavoritesScreen(
+                channels = channels,
+                favoriteChannelIds = favoriteChannelIds,
+
+                onChannelClick = { channel ->
+
+                    Log.d(
+                        "StreamBoxNavigation",
+                        "Favorite channel clicked: " +
+                                channel.id
+                    )
+
+                    navController.navigate(
+                        StreamBoxRoutes.channelDetails(
+                            channel.id
+                        )
+                    )
+                },
+
+                onRemoveFavorite = { channelId ->
+
+                    Log.d(
+                        "StreamBoxNavigation",
+                        "Removing favorite from Favorites: $channelId"
+                    )
+
+                    favoritesViewModel.removeFavorite(
+                        channelId
+                    )
+                },
+
+                onBack = {
+
+                    Log.d(
+                        "StreamBoxNavigation",
+                        "Favorites BACK clicked"
+                    )
+
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // =====================================================
+        // WATCH HISTORY
+        // =====================================================
+
+        composable(
+            route = StreamBoxRoutes.HISTORY
+        ) {
+
+            Log.d(
+                "StreamBoxNavigation",
+                "================================"
+            )
+
+            Log.d(
+                "StreamBoxNavigation",
+                "HISTORY DESTINATION OPENED"
+            )
+
+            Log.d(
+                "StreamBoxNavigation",
+                "================================"
+            )
+
+            val watchHistoryViewModel:
+                    WatchHistoryViewModel =
+                viewModel(
+                    factory =
+                        WatchHistoryViewModelFactory(
+                            observeWatchHistoryUseCase =
+                                observeWatchHistoryUseCase,
+                            clearWatchHistoryUseCase =
+                                clearWatchHistoryUseCase
+                        )
+                )
+
+            val historyChannelIds by
+            watchHistoryViewModel
+                .historyChannelIds
+                .collectAsState()
+
+            val channels by
+            channelViewModel
+                .channels
+                .collectAsState()
+
+            Log.d(
+                "StreamBoxHistory",
+                "History IDs from Room: " +
+                        historyChannelIds
+            )
+
+            Log.d(
+                "StreamBoxHistory",
+                "Available channels: " +
+                        channels.size
+            )
+
+            WatchHistoryScreen(
+                channels = channels,
+                historyChannelIds = historyChannelIds,
+
+                onChannelClick = { channel ->
+
+                    Log.d(
+                        "StreamBoxHistory",
+                        "History channel clicked: " +
+                                channel.id
+                    )
+
+                    navController.navigate(
+                        StreamBoxRoutes.channelDetails(
+                            channel.id
+                        )
+                    )
+                },
+
+                onClearHistory = {
+
+                    Log.d(
+                        "StreamBoxHistory",
+                        "Clear history clicked"
+                    )
+
+                    watchHistoryViewModel
+                        .clearHistory()
+                },
+
+                onBack = {
+
+                    Log.d(
+                        "StreamBoxHistory",
+                        "History BACK clicked"
+                    )
+
+                    navController.popBackStack()
                 }
             )
         }
@@ -140,7 +463,8 @@ fun StreamBoxNavGraph() {
         ) { backStackEntry ->
 
             val categoryId =
-                backStackEntry.arguments
+                backStackEntry
+                    .arguments
                     ?.getString("categoryId")
                     ?: "all"
 
@@ -193,7 +517,8 @@ fun StreamBoxNavGraph() {
         ) { backStackEntry ->
 
             val channelId =
-                backStackEntry.arguments
+                backStackEntry
+                    .arguments
                     ?.getString("channelId")
 
             Log.d(
@@ -208,8 +533,34 @@ fun StreamBoxNavGraph() {
 
             if (channel != null) {
 
+                val favoriteViewModel:
+                        FavoriteViewModel =
+                    viewModel(
+                        factory =
+                            FavoriteViewModelFactory(
+                                channelId = channel.id,
+                                addFavoriteUseCase =
+                                    addFavoriteUseCase,
+                                removeFavoriteUseCase =
+                                    removeFavoriteUseCase,
+                                isFavoriteUseCase =
+                                    isFavoriteUseCase
+                            )
+                    )
+
+                val isFavorite by
+                favoriteViewModel
+                    .isFavorite
+                    .collectAsState()
+
                 ChannelDetailsScreen(
                     channel = channel,
+                    isFavorite = isFavorite,
+
+                    onFavoriteClick = {
+                        favoriteViewModel
+                            .toggleFavorite()
+                    },
 
                     onWatchNow = {
 
@@ -261,7 +612,8 @@ fun StreamBoxNavGraph() {
         ) { backStackEntry ->
 
             val channelId =
-                backStackEntry.arguments
+                backStackEntry
+                    .arguments
                     ?.getString("channelId")
 
             Log.d(
@@ -279,8 +631,10 @@ fun StreamBoxNavGraph() {
                 "Channel ID: $channelId"
             )
 
-            val channels =
-                channelViewModel.channels.value
+            val channels by
+            channelViewModel
+                .channels
+                .collectAsState()
 
             Log.d(
                 "StreamBoxNavigation",
@@ -301,28 +655,81 @@ fun StreamBoxNavGraph() {
                     "Player channel: ${channel.name}"
                 )
 
+                // =================================================
+                // WATCH HISTORY
+                // =================================================
+
+                Log.d(
+                    "StreamBoxHistory",
+                    "PLAYER HISTORY BLOCK ENTERED"
+                )
+
+                Log.d(
+                    "StreamBoxHistory",
+                    "Channel ready for history: " +
+                            "${channel.id} ${channel.name}"
+                )
+
+                LaunchedEffect(channel.id) {
+
+                    Log.d(
+                        "StreamBoxHistory",
+                        "================================"
+                    )
+
+                    Log.d(
+                        "StreamBoxHistory",
+                        "RECORDING WATCH HISTORY"
+                    )
+
+                    Log.d(
+                        "StreamBoxHistory",
+                        "Channel ID: ${channel.id}"
+                    )
+
+                    Log.d(
+                        "StreamBoxHistory",
+                        "Channel Name: ${channel.name}"
+                    )
+
+                    try {
+
+                        recordWatchHistoryUseCase(
+                            channel.id
+                        )
+
+                        Log.d(
+                            "StreamBoxHistory",
+                            "WATCH HISTORY SAVED: " +
+                                    channel.id
+                        )
+
+                        Log.d(
+                            "StreamBoxHistory",
+                            "================================"
+                        )
+
+                    } catch (exception: Exception) {
+
+                        Log.e(
+                            "StreamBoxHistory",
+                            "WATCH HISTORY FAILED: " +
+                                    channel.id,
+                            exception
+                        )
+                    }
+                }
+
                 Log.d(
                     "StreamBoxNavigation",
-                    "Player stream URL: ${channel.streamUrl}"
+                    "Player stream URL: " +
+                            channel.streamUrl
                 )
 
                 Log.d(
                     "StreamBoxNavigation",
-                    "Player stream type: ${channel.streamType}"
-                )
-
-                Log.d(
-                    "StreamBoxNavigation",
-                    "Player channel index: ${
-                        channels.indexOfFirst {
-                            it.id == channel.id
-                        }
-                    }"
-                )
-
-                Log.d(
-                    "StreamBoxNavigation",
-                    "================================"
+                    "Player stream type: " +
+                            channel.streamType
                 )
 
                 PlayerScreen(
@@ -337,11 +744,13 @@ fun StreamBoxNavGraph() {
                         )
 
                         val popped =
-                            navController.popBackStack()
+                            navController
+                                .popBackStack()
 
                         Log.d(
                             "StreamBoxNavigation",
-                            "Player popBackStack result: $popped"
+                            "Player popBackStack result: " +
+                                    popped
                         )
                     }
                 )
@@ -350,31 +759,8 @@ fun StreamBoxNavGraph() {
 
                 Log.e(
                     "StreamBoxNavigation",
-                    "================================"
-                )
-
-                Log.e(
-                    "StreamBoxNavigation",
-                    "PLAYER CHANNEL NOT FOUND"
-                )
-
-                Log.e(
-                    "StreamBoxNavigation",
-                    "Channel ID: $channelId"
-                )
-
-                Log.e(
-                    "StreamBoxNavigation",
-                    "Available channels: ${
-                        channels.map {
-                            "${it.id}:${it.name}"
-                        }
-                    }"
-                )
-
-                Log.e(
-                    "StreamBoxNavigation",
-                    "================================"
+                    "PLAYER CHANNEL NOT FOUND: " +
+                            channelId
                 )
 
                 navController.popBackStack()

@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-
+    alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
 }
 
@@ -65,10 +65,18 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer.hls)
 
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+//    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+
+    implementation(libs.kotlinx.serialization.json)
 
 
     implementation(libs.retrofit)
     implementation(libs.okhttp.logging)
     implementation(libs.kotlin.serialization.converter)
+
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    implementation(libs.coil.compose)
 }

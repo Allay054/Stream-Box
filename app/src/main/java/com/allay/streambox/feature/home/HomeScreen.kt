@@ -18,18 +18,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import com.allay.streambox.feature.channels.ChannelViewModel
+import com.allay.streambox.feature.components.HeroSection
 import com.allay.streambox.feature.home.components.CategoryRow
 import com.allay.streambox.feature.home.components.ChannelRow
-import com.allay.streambox.feature.home.components.HeroSection
-import com.allay.streambox.feature.home.components.StreamBoxTopBar
+import com.allay.streambox.feature.components.StreamBoxTopBar
 
 @Composable
 fun HomeScreen(
     viewModel: ChannelViewModel,
     onCategoryClick: (HomeCategory) -> Unit,
     onChannelClick: (HomeChannel) -> Unit,
-    onWatchNow: () -> Unit
+    onWatchNow: () -> Unit,
+    onFavoritesClick: () -> Unit,
+    onHistoryClick: () -> Unit
 ) {
+
     val channels by viewModel.channels.collectAsState()
     val categories by viewModel.categories.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -65,7 +68,11 @@ fun HomeScreen(
                 .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            StreamBoxTopBar()
+
+            StreamBoxTopBar(
+                onFavoritesClick = onFavoritesClick,
+                onHistoryClick = onHistoryClick
+            )
 
             HeroSection(
                 onWatchNow = onWatchNow
@@ -100,18 +107,24 @@ fun HomeScreen(
             )
         }
 
-        if (isLoading) {
+        // Only block the screen while the initial data is loading.
+        if (isLoading && channels.isEmpty()) {
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        Color.Black.copy(alpha = 0.65f)
+                        Color.Black.copy(
+                            alpha = 0.65f
+                        )
                     ),
                 contentAlignment = Alignment.Center
             ) {
+
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+
                     CircularProgressIndicator(
                         modifier = Modifier.size(56.dp)
                     )
@@ -119,7 +132,9 @@ fun HomeScreen(
                     Text(
                         text = "Loading channels...",
                         style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(top = 16.dp)
+                        modifier = Modifier.padding(
+                            top = 16.dp
+                        )
                     )
                 }
             }
